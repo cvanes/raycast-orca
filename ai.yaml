@@ -1,0 +1,348 @@
+instructions: |
+  Orca is an agentic development environment. It organises work into worktrees: a git worktree
+  plus the terminals, browser tabs and AI agents attached to it.
+
+  Resolving things:
+  - A worktree id looks like `<repoId>::<absolutePath>`, for example
+    `708c994c-a14d-4af5-82a6-2cd05d3b390a::/Users/me/Development/web-app`. Never invent one.
+  - When the user names a worktree, project or branch, call `list-worktrees` or `list-projects`
+    first and match on `displayName`, `repo` or `branch`, then pass the id you found.
+  - Terminal handles look like `term_<uuid>` and only come from `list-terminals`.
+  - Browser page ids come from `list-browser-tabs` or from the `browserPageId` that
+    `open-browser-tab` returns.
+  - Every tool that takes a `worktreeId` also accepts a worktree display name and resolves it, so
+    pass the name when that is all the user gave you.
+
+  Answering "what are my agents doing":
+  - `list-worktrees` is the single best call. Its `agentStatus` is the worktree level state
+    ("working", "active", "inactive") and each entry in `agents` has the agent type, its state
+    ("working", "waiting", "done"), the task it was given and the tool it is running.
+  - It hides archived worktrees; pass `includeArchived: true` when the user asks about those.
+
+  Working with terminals:
+  - Prefer `read-terminal` in screen mode to answer "what does it show now"; use scrollback mode
+    only when the user asks for earlier output. The `source` field says what came back: "screen"
+    for the rendered screen, "stream" for accumulated output, "screen-unavailable" when a screen
+    was asked for but only accumulated output could be returned.
+  - `send-to-terminal` types into a live session, so it is how you talk to a running agent. Set
+    `interrupt` when the agent is mid-task and needs to be stopped first.
+
+  Working with browser tabs:
+  - `open-browser-tab` returns the new tab's `browserPageId`. Reuse it with
+    `navigate-browser-tab` or `close-browser-tab` instead of listing the tabs again.
+
+  Creating worktrees:
+  - `create-worktree` needs a project and a name. Pass `agent` to start an agent in the first
+    terminal and `prompt` to give that agent its task. Without `agent` the worktree is created
+    empty.
+
+  Adding projects:
+  - A project is a repo registered with Orca. `add-project` registers a folder that already
+    exists on disk; set `initGit` when the folder is not a git repository yet.
+  - `clone-project` clones a remote repository and registers it in one step. When the user names
+    a repo rather than a URL, call `search-github-repos` first and clone the `cloneUrl` of the
+    match. Without a `destination` it clones into the user's configured clone directory.
+  - When `search-github-repos` comes back with `ghAvailable: false` the GitHub CLI is missing or
+    not signed in, so repo names cannot be resolved: ask the user for a clone URL instead.
+  - Cloning only works on this machine or a paired Orca server. `list-hosts` shows what is
+    available; SSH targets cannot be cloned to from here.
+
+  Orca must be running for any of this to work. If `get-orca-status` reports the app is not
+  running or the runtime is not reachable, call `open-orca` and then retry.
+
+evals:
+  - input: "@orca what are my agents doing?"
+    mocks:
+      list-worktrees:
+        worktrees:
+          - id: "3a3118be-f0d9-45c6-8212-66e3f7801396::/Users/me/Development/design-system"
+            displayName: "main"
+            repo: "design-system"
+            branch: "main"
+            path: "/Users/me/Development/design-system"
+            workspaceStatus: "in-progress"
+            agentStatus: "working"
+            liveTerminalCount: 1
+            isArchived: false
+            isMainWorktree: true
+            agents:
+              - agentType: "claude"
+                state: "working"
+                task: "Refresh the button component tokens"
+                toolName: "Bash"
+          - id: "31a1c822-56a3-4e73-9502-a083aab2151f::/Users/me/Development/Orca/workspaces/mobile-app/first-iteration-codex"
+            displayName: "first-iteration-codex"
+            repo: "mobile-app"
+            branch: "feature/first-iteration-codex"
+            path: "/Users/me/Development/Orca/workspaces/mobile-app/first-iteration-codex"
+            workspaceStatus: "in-progress"
+            agentStatus: "active"
+            liveTerminalCount: 1
+            isArchived: false
+            isMainWorktree: false
+            agents:
+              - agentType: "codex"
+                state: "done"
+                task: "Wire up the onboarding screens"
+    expected:
+      - callsTool: "list-worktrees"
+      - includes: "claude"
+
+  - input: "@orca create a worktree in web-app called fix-links and have claude tidy the broken links"
+    mocks:
+      list-projects:
+        projects:
+          - id: "708c994c-a14d-4af5-82a6-2cd05d3b390a"
+            displayName: "web-app"
+            path: "/Users/me/Development/web-app"
+            kind: "git"
+            remote: "github.com/acme/web-app"
+          - id: "ff3f23c4-8ce3-414e-8ead-f1861459e8b6"
+            displayName: "docs-site"
+            path: "/Users/me/Development/acme/docs-site"
+            kind: "git"
+            remote: "github.com/acme/docs-site"
+      create-worktree:
+        worktree:
+          id: "708c994c-a14d-4af5-82a6-2cd05d3b390a::/Users/me/Development/Orca/workspaces/web-app/fix-links"
+          displayName: "fix-links"
+          branch: "feature/fix-links"
+          path: "/Users/me/Development/Orca/workspaces/web-app/fix-links"
+        agentTerminalHandle: "term_9c1f4a2e-5f11-4a2b-9d1d-9a5b1f7c3d42"
+    expected:
+      - callsTool: "list-projects"
+      - callsTool:
+          name: "create-worktree"
+          arguments:
+            name:
+              includes: "fix-links"
+            agent: "claude"
+
+  - input: "@orca what is the terminal in docs-site showing?"
+    mocks:
+      list-terminals:
+        terminals:
+          - handle: "term_a1b2c3d4-1111-4a2b-9d1d-9a5b1f7c3d42"
+            title: "✳ docs theme refresh"
+            worktreeId: "ff3f23c4-8ce3-414e-8ead-f1861459e8b6::/Users/me/Development/acme/docs-site"
+            worktreePath: "/Users/me/Development/acme/docs-site"
+            branch: "main"
+            agentIdentity: "claude"
+            connected: true
+            writable: true
+            preview: "Running the theme snapshot tests"
+      read-terminal:
+        handle: "term_a1b2c3d4-1111-4a2b-9d1d-9a5b1f7c3d42"
+        status: "running"
+        source: "screen"
+        lines:
+          - "npm run test:themes"
+          - "PASS  src/themes/acme.test.ts"
+          - "Tests: 18 passed, 18 total"
+    expected:
+      - callsTool: "list-terminals"
+      - callsTool: "read-terminal"
+      - includes: "18"
+
+  - input: "@orca open package.json in the design-system worktree"
+    mocks:
+      list-worktrees:
+        worktrees:
+          - id: "3a3118be-f0d9-45c6-8212-66e3f7801396::/Users/me/Development/design-system"
+            displayName: "main"
+            repo: "design-system"
+            branch: "main"
+            path: "/Users/me/Development/design-system"
+            workspaceStatus: "in-progress"
+            agentStatus: "working"
+            liveTerminalCount: 1
+            isArchived: false
+            isMainWorktree: true
+            agents: []
+      open-file:
+        opened: true
+        path: "package.json"
+    expected:
+      - callsTool: "list-worktrees"
+      - callsTool:
+          name: "open-file"
+          arguments:
+            path:
+              includes: "package.json"
+
+  - input: "@orca open onorca.dev in the browser of the docs-site worktree"
+    mocks:
+      list-worktrees:
+        worktrees:
+          - id: "ff3f23c4-8ce3-414e-8ead-f1861459e8b6::/Users/me/Development/acme/docs-site"
+            displayName: "main"
+            repo: "docs-site"
+            branch: "main"
+            path: "/Users/me/Development/acme/docs-site"
+            workspaceStatus: "in-progress"
+            agentStatus: "inactive"
+            liveTerminalCount: 0
+            isArchived: false
+            isMainWorktree: true
+            agents: []
+      open-browser-tab:
+        browserPageId: "a8eebd9b-683c-487c-866f-c5b5c7f933ce"
+    expected:
+      - callsTool:
+          name: "open-browser-tab"
+          arguments:
+            url:
+              includes: "onorca.dev"
+
+  - input: "@orca tell the claude in billing-service to run the tests"
+    mocks:
+      list-terminals:
+        terminals:
+          - handle: "term_c9d7d8d1-b6c2-4071-8ae2-439dd2da422d"
+            title: "✳ invoice retry backoff"
+            worktreeId: "228ff284-4e8b-4306-b5a7-9b58325e0142::/Users/me/Development/acme/billing-service"
+            worktreePath: "/Users/me/Development/acme/billing-service"
+            branch: "main"
+            agentIdentity: "claude"
+            connected: true
+            writable: true
+            preview: "waiting for your next instruction"
+      send-to-terminal:
+        handle: "term_c9d7d8d1-b6c2-4071-8ae2-439dd2da422d"
+        accepted: true
+        bytesWritten: 14
+    expected:
+      - callsTool: "list-terminals"
+      - callsTool:
+          name: "send-to-terminal"
+          arguments:
+            handle: "term_c9d7d8d1-b6c2-4071-8ae2-439dd2da422d"
+            text:
+              includes: "test"
+
+  - input: "@orca remove the fix-links worktree"
+    mocks:
+      list-worktrees:
+        worktrees:
+          - id: "708c994c-a14d-4af5-82a6-2cd05d3b390a::/Users/me/Development/Orca/workspaces/web-app/fix-links"
+            displayName: "fix-links"
+            repo: "web-app"
+            branch: "feature/fix-links"
+            path: "/Users/me/Development/Orca/workspaces/web-app/fix-links"
+            workspaceStatus: "completed"
+            agentStatus: "inactive"
+            liveTerminalCount: 0
+            isArchived: false
+            isMainWorktree: false
+            agents: []
+      remove-worktree:
+        removed: true
+        worktreeId: "708c994c-a14d-4af5-82a6-2cd05d3b390a::/Users/me/Development/Orca/workspaces/web-app/fix-links"
+    expected:
+      - callsTool: "list-worktrees"
+      - callsTool:
+          name: "remove-worktree"
+          arguments:
+            worktreeId:
+              includes: "fix-links"
+
+  - input: "@orca is orca running?"
+    mocks:
+      get-orca-status:
+        appRunning: true
+        runtimeState: "ready"
+        runtimeReachable: true
+        appVersion: "1.4.197"
+    expected:
+      - callsTool: "get-orca-status"
+      - meetsCriteria: "Says that Orca is running and its runtime is ready"
+
+  - input: "@orca mark mobile-app as in review"
+    mocks:
+      list-worktrees:
+        worktrees:
+          - id: "31a1c822-56a3-4e73-9502-a083aab2151f::/Users/me/Development/Orca/workspaces/mobile-app/first-iteration-omp"
+            displayName: "first-iteration-omp"
+            repo: "mobile-app"
+            branch: "feature/first-iteration-omp"
+            path: "/Users/me/Development/Orca/workspaces/mobile-app/first-iteration-omp"
+            workspaceStatus: "in-progress"
+            agentStatus: "working"
+            liveTerminalCount: 1
+            isArchived: false
+            isMainWorktree: false
+            agents: []
+      update-worktree:
+        worktree:
+          id: "31a1c822-56a3-4e73-9502-a083aab2151f::/Users/me/Development/Orca/workspaces/mobile-app/first-iteration-omp"
+          displayName: "first-iteration-omp"
+          workspaceStatus: "in-review"
+    expected:
+      - callsTool: "list-worktrees"
+      - callsTool:
+          name: "update-worktree"
+          arguments:
+            workspaceStatus: "in-review"
+
+  - input: "@orca clone raycast/extensions into my dev folder"
+    mocks:
+      search-github-repos:
+        ghAvailable: true
+        repos:
+          - nameWithOwner: "raycast/extensions"
+            description: "Everything you need to extend Raycast."
+            url: "https://github.com/raycast/extensions"
+            cloneUrl: "https://github.com/raycast/extensions.git"
+            isPrivate: false
+            stars: 7735
+      clone-project:
+        path: "/Users/me/Development/extensions"
+        projectId: "github:raycast/extensions"
+        clonedByOrca: true
+    expected:
+      - callsTool:
+          name: "clone-project"
+          arguments:
+            url:
+              includes: "raycast/extensions"
+
+  - input: "@orca add ~/Projects/foo as a project and init git if needed"
+    mocks:
+      add-project:
+        path: "/Users/me/Projects/foo"
+        initialisedGit: true
+        repo:
+          id: "f0f1e2d3-4c5b-4a69-8877-665544332211"
+          displayName: "foo"
+          path: "/Users/me/Projects/foo"
+          kind: "git"
+    expected:
+      - callsTool:
+          name: "add-project"
+          arguments:
+            path:
+              includes: "Projects/foo"
+            initGit: true
+
+  - input: "@orca which projects do I have registered in Orca?"
+    mocks:
+      list-projects:
+        projects:
+          - id: "708c994c-a14d-4af5-82a6-2cd05d3b390a"
+            displayName: "web-app"
+            path: "/Users/me/Development/web-app"
+            kind: "git"
+            remote: "github.com/acme/web-app"
+          - id: "ff3f23c4-8ce3-414e-8ead-f1861459e8b6"
+            displayName: "docs-site"
+            path: "/Users/me/Development/acme/docs-site"
+            kind: "git"
+            remote: "github.com/acme/docs-site"
+          - id: "31a1c822-56a3-4e73-9502-a083aab2151f"
+            displayName: "mobile-app"
+            path: "/Users/me/Development/mobile-app"
+            kind: "git"
+            remote: "github.com/acme/mobile-app"
+    expected:
+      - callsTool: "list-projects"
+      - includes: "docs-site"

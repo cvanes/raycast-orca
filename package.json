@@ -1,0 +1,282 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "orca",
+  "title": "Orca",
+  "description": "Control Orca ADE from Raycast: browse worktrees, watch what your AI agents are doing, drive terminals and open files or browser tabs.",
+  "icon": "icon.png",
+  "author": "cvanes",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "macOS"
+  ],
+  "commands": [
+    {
+      "name": "worktrees",
+      "title": "Search Worktrees",
+      "subtitle": "Orca",
+      "description": "Browse Orca worktrees with live agent status and act on them.",
+      "mode": "view"
+    },
+    {
+      "name": "create-worktree",
+      "title": "Create Worktree",
+      "subtitle": "Orca",
+      "description": "Create an Orca worktree and optionally start an agent in it.",
+      "mode": "view"
+    },
+    {
+      "name": "terminals",
+      "title": "Search Terminals",
+      "subtitle": "Orca",
+      "description": "Browse live Orca terminals, read their output and send them input.",
+      "mode": "view"
+    },
+    {
+      "name": "projects",
+      "title": "Search Projects",
+      "subtitle": "Orca",
+      "description": "Browse the repos registered in Orca.",
+      "mode": "view"
+    },
+    {
+      "name": "add-project",
+      "title": "Add Project from Folder",
+      "subtitle": "Orca",
+      "description": "Register an existing folder with Orca as a project.",
+      "mode": "view"
+    },
+    {
+      "name": "clone-project",
+      "title": "Clone Project from GitHub",
+      "subtitle": "Orca",
+      "description": "Search GitHub, clone a repo and register it with Orca as a project.",
+      "mode": "view"
+    },
+    {
+      "name": "browser-tabs",
+      "title": "Search Browser Tabs",
+      "subtitle": "Orca",
+      "description": "Browse the tabs open in the Orca embedded browser.",
+      "mode": "view"
+    },
+    {
+      "name": "open-browser-tab",
+      "title": "Open Browser Tab",
+      "subtitle": "Orca",
+      "description": "Open a URL in the Orca embedded browser.",
+      "mode": "view"
+    },
+    {
+      "name": "open-file",
+      "title": "Open File in Orca",
+      "subtitle": "Orca",
+      "description": "Open a worktree file in the Orca editor.",
+      "mode": "view"
+    },
+    {
+      "name": "open-orca",
+      "title": "Open Orca",
+      "subtitle": "Orca",
+      "description": "Launch Orca and wait for its runtime to be reachable.",
+      "mode": "no-view"
+    }
+  ],
+  "tools": [
+    {
+      "name": "get-orca-status",
+      "title": "Get Orca Status",
+      "description": "Check whether the Orca app is running and its runtime is reachable."
+    },
+    {
+      "name": "list-projects",
+      "title": "List Projects",
+      "description": "List the repos registered in Orca with their ids, names, paths and git remotes."
+    },
+    {
+      "name": "list-worktrees",
+      "title": "List Worktrees",
+      "description": "List Orca worktrees with live agent status, terminal counts and last activity. Use this to answer what the agents are doing."
+    },
+    {
+      "name": "get-worktree",
+      "title": "Get Worktree",
+      "description": "Get the full details of a single Orca worktree by id or name."
+    },
+    {
+      "name": "create-worktree",
+      "title": "Create Worktree",
+      "description": "Create a new Orca worktree in a project and optionally start an agent in it with a prompt."
+    },
+    {
+      "name": "update-worktree",
+      "title": "Update Worktree",
+      "description": "Update the display name, comment or workspace status of an Orca worktree."
+    },
+    {
+      "name": "remove-worktree",
+      "title": "Remove Worktree",
+      "description": "Remove an Orca worktree, deleting its checkout and trying to delete its branch."
+    },
+    {
+      "name": "list-terminals",
+      "title": "List Terminals",
+      "description": "List the live Orca terminals with their handles, titles, agent identity and output previews."
+    },
+    {
+      "name": "read-terminal",
+      "title": "Read Terminal",
+      "description": "Read the output of an Orca terminal, either the current screen or a bounded slice of the scrollback."
+    },
+    {
+      "name": "create-terminal",
+      "title": "Create Terminal",
+      "description": "Create a terminal in an Orca worktree and optionally run a command in it."
+    },
+    {
+      "name": "send-to-terminal",
+      "title": "Send to Terminal",
+      "description": "Send text or a prompt to a live Orca terminal, optionally interrupting whatever is running first."
+    },
+    {
+      "name": "switch-to-terminal",
+      "title": "Switch to Terminal",
+      "description": "Bring Orca to the front and switch the user interface to a terminal."
+    },
+    {
+      "name": "close-terminal",
+      "title": "Close Terminal",
+      "description": "Close a live Orca terminal and kill its process."
+    },
+    {
+      "name": "open-file",
+      "title": "Open File",
+      "description": "Open a worktree file in the Orca editor, either as a normal editor or as a git diff."
+    },
+    {
+      "name": "open-changed-files",
+      "title": "Open Changed Files",
+      "description": "Open every git-changed file of an Orca worktree in the Orca editor."
+    },
+    {
+      "name": "list-browser-tabs",
+      "title": "List Browser Tabs",
+      "description": "List the tabs open in the Orca embedded browser across all worktrees."
+    },
+    {
+      "name": "open-browser-tab",
+      "title": "Open Browser Tab",
+      "description": "Open a URL in a new tab of the Orca embedded browser for a worktree."
+    },
+    {
+      "name": "navigate-browser-tab",
+      "title": "Navigate Browser Tab",
+      "description": "Navigate a tab of the Orca embedded browser to a URL."
+    },
+    {
+      "name": "close-browser-tab",
+      "title": "Close Browser Tab",
+      "description": "Close a tab of the Orca embedded browser."
+    },
+    {
+      "name": "add-project",
+      "title": "Add Project from Folder",
+      "description": "Register an existing folder with Orca as a project, optionally running git init first when the folder is not yet a git repository."
+    },
+    {
+      "name": "search-github-repos",
+      "title": "Search GitHub Repos",
+      "description": "Search GitHub for repositories, or list the signed-in user's own when no query is given. Use it to turn a repo name into a clone URL before cloning."
+    },
+    {
+      "name": "clone-project",
+      "title": "Clone Project",
+      "description": "Clone a git repository into a directory and register it with Orca as a project."
+    },
+    {
+      "name": "list-hosts",
+      "title": "List Hosts",
+      "description": "List the hosts Orca can target: this machine, its SSH targets and any paired Orca servers."
+    },
+    {
+      "name": "open-orca",
+      "title": "Open Orca",
+      "description": "Launch Orca, wait for its runtime to be reachable and bring the app to the front."
+    }
+  ],
+  "preferences": [
+    {
+      "name": "orcaPath",
+      "title": "Orca CLI Path",
+      "description": "Path to the orca binary. Falls back to the copy inside Orca.app when this path does not exist.",
+      "type": "textfield",
+      "required": false,
+      "default": "/usr/local/bin/orca"
+    },
+    {
+      "name": "defaultAgent",
+      "title": "Default Agent",
+      "description": "Agent preselected when creating a worktree.",
+      "type": "dropdown",
+      "required": false,
+      "default": "claude",
+      "data": [
+        {
+          "title": "Claude",
+          "value": "claude"
+        },
+        {
+          "title": "Codex",
+          "value": "codex"
+        },
+        {
+          "title": "OMP",
+          "value": "omp"
+        },
+        {
+          "title": "Pi",
+          "value": "pi"
+        },
+        {
+          "title": "Grok",
+          "value": "grok"
+        },
+        {
+          "title": "None",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "name": "defaultCloneDirectory",
+      "title": "Default Clone Directory",
+      "description": "Parent directory preselected when cloning a project.",
+      "type": "directory",
+      "required": false,
+      "default": "~/Development"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^2.2.0",
+    "@raycast/utils": "^2.3.1"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.2.0",
+    "@types/node": "22.19.17",
+    "@types/react": "19.0.10",
+    "eslint": "^9",
+    "prettier": "^3",
+    "typescript": "^5"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "fix-lint": "ray lint --fix",
+    "evals": "ray evals",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}

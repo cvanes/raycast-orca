@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Action, ActionPanel, Form, Icon, Toast, popToRoot, showToast } from "@raycast/api";
+import { Action, ActionPanel, Form, Icon, Toast, showToast } from "@raycast/api";
 import { usePromise, showFailureToast } from "@raycast/utils";
-import { openProjectInOrca } from "./components/open-project-action";
+import { finishInOrca } from "./components/feedback";
+import { revealProject } from "./lib/app";
 import { isGitRepo } from "./lib/git";
 import { errorMessage } from "./lib/orca";
 import { addProjectFromFolder } from "./lib/projects";
@@ -20,11 +21,11 @@ export function AddProjectForm() {
     const toast = await showToast({ style: Toast.Style.Animated, title: "Adding project" });
     try {
       const added = await addProjectFromFolder({ path: folder, initGit: canInitGit && initGit });
-      toast.style = Toast.Style.Success;
-      toast.title = added.initialisedGit ? "Initialised git and added project" : "Project added";
-      toast.message = added.repo?.displayName ?? added.path;
-      toast.primaryAction = { title: "Open in Orca", onAction: () => void openProjectInOrca(added.path) };
-      await popToRoot();
+      const name = added.repo?.displayName ?? added.path;
+      await toast.hide();
+      await finishInOrca(added.initialisedGit ? `Initialised git and added ${name}` : `Added ${name}`, () =>
+        revealProject(added.path),
+      );
     } catch (error) {
       toast.style = Toast.Style.Failure;
       toast.title = "Could not add project";

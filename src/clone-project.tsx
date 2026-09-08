@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Action, ActionPanel, Form, Icon, List, Toast, popToRoot, showToast } from "@raycast/api";
+import { Action, ActionPanel, Form, Icon, List, Toast, showToast } from "@raycast/api";
 import { useCachedPromise, showFailureToast } from "@raycast/utils";
-import { openProjectInOrca } from "./components/open-project-action";
+import { finishInOrca } from "./components/feedback";
 import { useOrcaList } from "./hooks/use-orca-data";
 import { listHosts } from "./lib/api";
+import { revealProject } from "./lib/app";
 import { repoNameFromUrl } from "./lib/git";
 import { GitHubRepo, listMyRepos, searchRepos } from "./lib/github";
 import { canCloneToHost, hostArgument } from "./lib/hosts";
@@ -126,11 +127,8 @@ function CloneForm({ url, displayName }: { url: string; displayName?: string }) 
         destination,
         displayName: values.displayName.trim() || undefined,
       });
-      toast.style = Toast.Style.Success;
-      toast.title = "Project cloned";
-      toast.message = cloned.path;
-      toast.primaryAction = { title: "Open in Orca", onAction: () => void openProjectInOrca(cloned.path) };
-      await popToRoot();
+      await toast.hide();
+      await finishInOrca(`Cloned ${repoNameFromUrl(cloneUrl)}`, () => revealProject(cloned.path));
     } catch (error) {
       toast.style = Toast.Style.Failure;
       toast.title = "Could not clone repository";

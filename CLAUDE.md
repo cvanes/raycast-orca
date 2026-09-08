@@ -14,8 +14,8 @@ npm run build      # ray build -e dist
 npx ray evals      # needs `npx ray login` first
 ```
 
-`ray lint` currently fails on one item only: `Invalid author "cvanes"`, because that handle is
-not registered on raycast.com. Treat every other lint or type error as a real failure.
+`ray lint` should pass clean. Treat any lint or type error as a real failure. It validates the
+`author` handle against raycast.com, so that check needs network access.
 
 ## Architecture
 

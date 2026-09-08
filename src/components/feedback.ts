@@ -1,4 +1,4 @@
-import { PopToRootType, Toast, closeMainWindow, showToast } from "@raycast/api";
+import { PopToRootType, Toast, closeMainWindow, showHUD, showToast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 import { focusOrca, openOrca } from "../lib/app";
 
@@ -32,6 +32,11 @@ export async function handOffToOrca(failure: string, action: () => Promise<unkno
   await closeMainWindow({ clearRootSearch: true, popToRootType: PopToRootType.Immediate });
   await focusOrca();
   return true;
+}
+
+export async function finishInOrca(message: string, reveal: () => Promise<unknown>): Promise<void> {
+  await showHUD(message, { clearRootSearch: true, popToRootType: PopToRootType.Immediate });
+  await reveal().catch(() => undefined);
 }
 
 export function openOrcaWithToast(): Promise<boolean> {
